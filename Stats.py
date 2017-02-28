@@ -25,16 +25,16 @@ class Stats:
             print("Column: " + key)
             print("correlation: " + str(res[0]) + "p-value: " + str(res[1]))
     def test(self, key):
-        secondArray = self.matrix[:, self.attributesSet['Session Continues']]
+        predictedVariable = self.matrix[:, self.attributesSet['Session Continues']]
 
-        firstArray = self.matrix[:, self.attributesSet[key]]
-        if "?" in firstArray:
-                firstArray[firstArray == "?"] = "not_defined"
+        correlatedVariable = self.matrix[:, self.attributesSet[key]]
+        if "?" in correlatedVariable:
+            correlatedVariable[correlatedVariable == "?"] = "not_defined"
 
-        firstArray = self.replaceNaN(firstArray)
-        res = spearmanr(firstArray, secondArray, nan_policy='omit')
+        firstArray = self.replaceNaN(correlatedVariable)
+        res = spearmanr(firstArray, predictedVariable, nan_policy='omit')
         print("Column: " + key)
-        print("correlation: " + str(res[0]) + "p-value: " + str(res[1]))
+        print("correlation: " + str(res[0]) + " p-value: " + str(res[1]))
 
 
 
