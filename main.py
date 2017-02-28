@@ -18,43 +18,19 @@ with open("dataset/question1agg.names","r") as text:
 filename = "dataset/question1agg.csv"
 
 df = pd.read_csv(filename, sep=',',header=None, encoding = "ISO-8859-1")
-tmp = df[df.columns[1:]].corr()[attributesSet['Session Continues']]
-print (tmp)
+predictedVariableIndex = attributesSet['Session Continues']
+tmp = df.corr()[predictedVariableIndex]
 
-# numpyMatrix = df.as_matrix()
-# [rowCount, columnCount] = numpyMatrix.shape
-#
-#
-# # users without customer id are marked as '?'
-#
-#
-# numCustId = len(set(numpyMatrix[:, attributesSet['Customer ID']]))
-# sessionNumRegCust = len(numpyMatrix[numpyMatrix[:, attributesSet['Session Customer ID']] != '?'])
-#
+# get rid of correlation with itself (equals 1 anyway)
+print (tmp.drop(predictedVariableIndex).sort_values(ascending=False)[:20])
+
 # """ basic informations"""
 # numSessionCookieId = len(set(numpyMatrix[:,attributesSet['Session Cookie ID']]))
 # numSessionId = len(set(numpyMatrix[:, attributesSet['Session ID']]))
 # numSessionCustomerId = len(set(numpyMatrix[:, attributesSet['Session Customer ID']])) - 1
 #
-# tmpIndex = attributesSet['DoYouPurchaseForOthers']
-# tmp = numpyMatrix[:, tmpIndex]
 #
 # print (numCustId, numSessionCookieId, numSessionId, numSessionCustomerId)
-#
-#
-# """  finding of all records of specific customer"""
-# # singleSessionRows = []
-# # ids = numpyMatrix[:, attributesSet['Session Customer ID']]
-# # for i in range (0, len(ids)):
-# #     if ids[i] == "62":
-# #         singleSessionRows.append(numpyMatrix[i])
-# #         print(numpyMatrix[i][attributesSet['Session Continues']])
-# #
-# # print("aaa")
-#
-# sta = Stats(numpyMatrix, attributesSet)
-# # sta.spearmanCorrelation()
-# sta.test("WhichDoYouWearMostFrequent")
 
 
 
