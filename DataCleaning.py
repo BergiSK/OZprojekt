@@ -17,10 +17,17 @@ def createAttributeSet():
         for line in text:
             if i >= attributeStartingLine:
                 temp = line.split(':')
-                # some attributes are suggested by dataset providers, to be ignored
-                if "ignore" not in temp[1]:
-                    attributesSet[line.split(':')[0]] = i - attributeStartingLine
+                attributesSet[line.split(':')[0]] = i - attributeStartingLine
             i += 1
+    #  setting special names for date columns
+    for item in dateTimeColumns:
+        key1 = list(attributesSet.keys())[list(attributesSet.values()).index(item[0])]
+        key2 = list(attributesSet.keys())[list(attributesSet.values()).index(item[1])]
+
+        attributesSet[key1 + " time"] = str(attributesSet[key1]) + "_" + str(attributesSet[key2])
+        del attributesSet[key1]
+        del attributesSet[key2]
+
     return attributesSet
 
 def preprocessData(df):
@@ -42,9 +49,9 @@ def preprocessData(df):
         df[i] = df[i].astype('category')
 
     # Remove useless data (continuous strings / ID variables)
-    df.drop(df.columns[idColumns], axis=1, inplace=True)
+    df.drop(idColumns, axis=1, inplace=True)
     categoricVariableColumns = df.select_dtypes(['object']).columns
-    df.drop(df.columns[categoricVariableColumns], axis=1, inplace=True)
+    df.drop(list(categoricVariableColumns.values), axis=1, inplace=True)
 
     return df
 
@@ -57,21 +64,17 @@ def main():
 
     df = preprocessData(df)
 
-    # Compute correlation with predicted variable for all columns
-    predictedVariableIndex = attributesSet['Session Continues']
-    tmp = df.corr(method='spearman')[predictedVariableIndex]
+    preprocessedColumnNames = []
+    for item in df.columns.values:
+        preprocessedColumnNames.append(list(attributesSet.keys())[list(attributesSet.values()).index(item)])
 
-    # get rid of correlation with itself (equals 1 anyway)
-    print (tmp.drop(predictedVariableIndex).sort_values(ascending=False)[:20])
-    print (tmp.shape)
+    namesFile = open('dataset/PreprocessedDataNames.txt', 'w')
+    for i in range(0, len(preprocessedColumnNames)):
+        namesFile.write("%s\n" % preprocessedColumnNames[i] )
 
-    correlations = tmp.drop(predictedVariableIndex).sort_values(ascending=False)
-    print(correlations)
+    df.to_csv("dataset/PreprocessedData.csv", sep=',', encoding="ISO-8859-1" , header=False, index=False)
 
-    for item in correlations.index:
-        print(list(attributesSet.keys())[list(attributesSet.values()).index(item)])
-
-if __name__ == "__main__":
+if __name__=="__main__":
     main()
 
 
