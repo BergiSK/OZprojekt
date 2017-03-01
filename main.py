@@ -15,25 +15,40 @@ with open("dataset/question1agg.names","r") as text:
                 attributesSet[line.split(':')[0]] = i - attributeStartingLine
         i+=1
 
-filename = "dataset/question1agg.csv"
+filename = "dataset/question1agg3.csv"
 
-df = pd.read_csv(filename, sep=',',header=None, encoding = "ISO-8859-1")
+df = pd.read_csv(filename, sep=',',header=None, encoding = "ISO-8859-1", parse_dates=[88])
 predictedVariableIndex = attributesSet['Session Continues']
-tmp = df.corr()[predictedVariableIndex]
 
+df = pd.concat([
+    df.select_dtypes([], ['object']),
+    df.select_dtypes(['object']).apply(pd.Series.astype, dtype='category')
+        ], axis=1)
+# df = df.reindex_axis(specificColumn.columns, axis=1)
+
+cat_columns = df.select_dtypes(['category']).columns
+df[cat_columns] = df[cat_columns].apply(lambda x: x.cat.codes)
+
+tmp = df.corr(method="spearman")[predictedVariableIndex]
+correlations = tmp.drop(predictedVariableIndex).sort_values(ascending=False)
+
+print("-----------------------------")
+print(correlations)
+print("-----------------------------")
+print(correlations.shape)
+
+for item in correlations.index:
+    print(list(attributesSet.keys())[list(attributesSet.values()).index(item)])
+# tmp = specificColumn.corr(method="spearman")[predictedVariableIndex]
+# correlations = tmp.drop(predictedVariableIndex).sort_values(ascending=False)
+# print(correlations)
+"""
 # get rid of correlation with itself (equals 1 anyway)
-print (tmp.drop(predictedVariableIndex).sort_values(ascending=False)[:20])
+correlations = tmp.drop(predictedVariableIndex).sort_values(ascending=False)
+print(correlations)
 
-# """ basic informations"""
-# numSessionCookieId = len(set(numpyMatrix[:,attributesSet['Session Cookie ID']]))
-# numSessionId = len(set(numpyMatrix[:, attributesSet['Session ID']]))
-# numSessionCustomerId = len(set(numpyMatrix[:, attributesSet['Session Customer ID']])) - 1
-#
-#
-# print (numCustId, numSessionCookieId, numSessionId, numSessionCustomerId)
-
-
-
-
+for item in correlations.index:
+    print(list(attributesSet.keys())[list(attributesSet.values()).index(item)])
+"""
 
 

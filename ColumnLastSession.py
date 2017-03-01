@@ -10,7 +10,7 @@ with open("dataset/question1agg.names","r") as text:
             attributesSet[line.split(':')[0]] = i - 8
         i+=1
 
-filename = "dataset/question1agg3.csv"
+filename = "dataset/newDataset.csv"
 
 df = pd.read_csv(filename, sep=',',header=None, encoding = "ISO-8859-1")
 numpyMatrix = df.as_matrix()
