@@ -18,18 +18,18 @@ def readDataFrame():
     # Loads the data
     filename = "dataset/PreprocessedData.csv"
     df = pd.read_csv(filename, sep=',', header=None, encoding="ISO-8859-1", parse_dates=dateTimeColumns,
-                     dtype={53: 'category',
-                            209: 'category',
-                            211: 'category',
+                     dtype={54: 'category',
+                            210: 'category',
                             212: 'category',
                             213: 'category',
-                            217: 'category',
+                            214: 'category',
                             218: 'category',
                             219: 'category',
                             220: 'category',
                             221: 'category',
                             222: 'category',
-                            223: 'category'
+                            223: 'category',
+                            224: 'category'
                             })
     return df
 
@@ -82,7 +82,7 @@ def main():
     attributesSet = createAttributeSet()
     df = readDataFrame()
 
-    importantColumns = [55,215,130,95,attributesSet['Session Continues']]
+    importantColumns = [56,216,131,96,attributesSet['Session Continues']]
     columnNames = []
     for i in importantColumns:
         columnNames.append(list(attributesSet.keys())[list(attributesSet.values()).index(i)])
@@ -90,9 +90,9 @@ def main():
 
     # plotPairs(df, columnNames)
     # plotBox
-    plotBoxSeaborn(df, columnNames)
+    # plotBoxSeaborn(df, columnNames)
     # plotPairsSeaborn(df, columnNames)
-    # calculateAndPrintCorrelations(df, attributesSet)
+    calculateAndPrintCorrelations(df, attributesSet)
 
 
 
