@@ -7,7 +7,7 @@ booleanColumns = [4,12,24,25,26,31,32,33,34,35,36,37,38,39,47,51,58,60,61,62,63,
 dateTimeColumns = [[88,89], [90,91], [144,145]]
 categoryNotNanColumns = [103, 263, 289, 290, 291, 292, 293, 294, 295]
 categoryWithNanColumns = [283, 284, 285]
-idColumns = [23, 93, 95]
+idColumns = [23, 93, 94]
 
 # Loads column names of the dataset
 def createAttributeSet():
@@ -32,14 +32,15 @@ def createAttributeSet():
 
 def preprocessData(df):
     # create custom column SessionRegistered
-    df[94].values[df[94].values == "?"] = False
-    df[94].values[df[94].values != False] = True
-    df[94] = df[94].astype('bool')
+    df[95].values[df[95].values == "?"] = False
+    df[95].values[df[95].values != False] = True
+    df[95] = df[95].astype('bool')
 
     # replaces '?' with nans for numarical columns, nans with 'not_defined' for categorical columns,
     # nans with previous valid bool value for boolean columns
     df.replace('?', np.nan, inplace=True)
     df[categoryWithNanColumns].replace(np.nan, 'not_defined', inplace=True)
+    # applied only on booleans
     df.fillna(method='bfill', inplace=True)
 
     # Convert object variables to numeric for correlation computation,
@@ -63,17 +64,16 @@ def preprocessData(df):
     # select the float columns
     df_flaot = df.select_dtypes(include=[np.float]).columns.values
     # select non-numeric columns
-    df_num = df.select_dtypes(exclude=[np.number]).columns.values
+    df_num = df.select_dtypes(include=[np.int64]).columns.values
     num_columns = np.append(df_num, df_flaot)
     # set values higher then 95% quantil to 95% quantil
     for item in num_columns:
-        if df[item].dtype.name != "category" and df[item].dtype.name != "datetime64[ns]" and df[item].dtype.name != "bool":
-            high_quantiles = df[item].quantile(0.95)
-            # some columns have almost all values 0 a than max quantil is 0
-            if high_quantiles == 0:
-                continue
-            outliers_hight = (df[item] > high_quantiles)
-            df[item].mask(outliers_hight, high_quantiles,  inplace=True)
+        high_quantiles = df[item].quantile(0.95)
+        # some columns have almost all values 0 a than max quantil is 0
+        if high_quantiles == 0:
+            continue
+        outliers_hight = (df[item] > high_quantiles)
+        df[item].mask(outliers_hight, high_quantiles,  inplace=True)
 
     return df
 

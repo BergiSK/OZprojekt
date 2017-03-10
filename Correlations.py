@@ -2,6 +2,16 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import json
+
+from configparser import ConfigParser
+import codecs
+
+parser = ConfigParser()
+# Open the file with the correct encoding
+with codecs.open('config.ini', 'r', encoding='utf-8') as f:
+    parser.readfp(f)
+
 
 dateTimeColumns = [0, 1, 2]
 
@@ -43,8 +53,13 @@ def calculateAndPrintCorrelations(df, attributesSet):
     # print (tmp.shape)
 
     correlations = tmp.drop(predictedVariableIndex).sort_values(ascending=False)
-    print(correlations)
-
+    # print(correlations)
+    for item in correlations.index.values:
+        print(str(item))
+    print ("-----------")
+    for item in correlations.values:
+        print(str(item))
+    print("-----------")
     for item in correlations.index:
         print(list(attributesSet.keys())[list(attributesSet.values()).index(item)])
 
@@ -75,18 +90,21 @@ def plotBoxSeaborn(df, columnNames):
     df_norm = (newDf - newDf.mean()) / (newDf.max() - newDf.min())
     df_norm['Session Continues'] = df['Session Continues']
 
-    ax = sns.boxplot(data=df_norm, orient="h", palette="Set3", whis=3)
+    ax = sns.boxplot(data=df_norm, orient="v", palette="Set3", whis=3)
     ax.get_figure().savefig('boxplot_seaborn.png')
+
+
 
 def main():
     attributesSet = createAttributeSet()
     df = readDataFrame()
 
-    importantColumns = [56,216,131,96,attributesSet['Session Continues']]
-    columnNames = []
-    for i in importantColumns:
-        columnNames.append(list(attributesSet.keys())[list(attributesSet.values()).index(i)])
-    df.rename(columns=dict(zip(importantColumns, columnNames)), inplace=True)
+
+    # importantColumns = [56,216,131,96,attributesSet['Session Continues']]
+    # columnNames = []
+    # for i in importantColumns:
+    #     columnNames.append(list(attributesSet.keys())[list(attributesSet.values()).index(i)])
+    # df.rename(columns=dict(zip(importantColumns, columnNames)), inplace=True)
 
     # plotPairs(df, columnNames)
     # plotBox
