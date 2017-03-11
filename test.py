@@ -1,8 +1,15 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+from sklearn import svm, datasets
+from sklearn.model_selection import GridSearchCV
 
-df = pd.DataFrame(np.random.randn(1000, 4), columns=['A','B','C','D'])
-axes = pd.tools.plotting.scatter_matrix(df, alpha=0.2)
-plt.tight_layout()
-plt.savefig('scatter_matrix.png')
+def main():
+    iris = datasets.load_iris()
+    parameters = {'kernel': ('linear', 'rbf'), 'C': [1, 10], 'class_weight': ["balanced",{2:2}]}
+    svr = svm.SVC()
+    clf = GridSearchCV(svr, parameters, n_jobs=4)
+    clf.fit(iris.data, iris.target)
+    print(clf.best_params_)
+    print(clf.best_score_)
+    print(clf.n_jobs)
+
+if __name__ == '__main__':
+    main()

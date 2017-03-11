@@ -3,7 +3,7 @@ import numpy as np
 
 attributeStartingLine = 8
 
-booleanColumns = [4,12,24,25,26,31,32,33,34,35,36,37,38,39,47,51,58,60,61,62,63,64,65,66,67,80,127,236,271]
+booleanColumns = [4,12,24,25,26,31,32,33,34,35,36,37,38,39,43,47,51,55,56,58,60,61,62,63,64,65,66,67,80,95,127]
 dateTimeColumns = [[88,89], [90,91], [144,145]]
 categoryNotNanColumns = [103, 263, 289, 290, 291, 292, 293, 294, 295]
 categoryWithNanColumns = [283, 284, 285]
@@ -41,7 +41,9 @@ def preprocessData(df):
     df.replace('?', np.nan, inplace=True)
     df[categoryWithNanColumns].replace(np.nan, 'not_defined', inplace=True)
     # applied only on booleans
-    df.fillna(method='bfill', inplace=True)
+    # df.fillna(method='bfill', inplace=True)
+    for column in booleanColumns:
+        df[column].fillna(df[column].mode()[0], inplace=True)
 
     # Convert object variables to numeric for correlation computation,
     # nans are replaced with mean value
@@ -62,16 +64,17 @@ def preprocessData(df):
 
 
     # select the float columns
-    df_flaot = df.select_dtypes(include=[np.float]).columns.values
+    df_float = df.select_dtypes(include=[np.float]).columns.values
     # select non-numeric columns
     df_num = df.select_dtypes(include=[np.int64]).columns.values
-    num_columns = np.append(df_num, df_flaot)
+    num_columns = np.append(df_num, df_float)
     # set values higher then 95% quantil to 95% quantil
     for item in num_columns:
         high_quantiles = df[item].quantile(0.95)
         # some columns have almost all values 0 a than max quantil is 0
         if high_quantiles == 0:
             continue
+
         outliers_hight = (df[item] > high_quantiles)
         df[item].mask(outliers_hight, high_quantiles,  inplace=True)
 

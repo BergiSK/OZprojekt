@@ -1,10 +1,10 @@
 import pandas as pd
-import numpy as np
 import json
 from sklearn import svm
-from sklearn.model_selection import train_test_split
+
 from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn import cross_validation
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 
 from configparser import ConfigParser
 import codecs
@@ -63,11 +63,21 @@ def main():
     trainDf = loadImportantColumns(df)
     testDf = df[78]
 
-    clf = svm.SVC(kernel='rbf')
-    sss = StratifiedShuffleSplit(n_splits=2, test_size=0.2)
-    scoresSSS = cross_validation.cross_val_score(clf, trainDf, testDf, cv=sss.split(trainDf, testDf))
+    # clf = svm.SVC(kernel='rbf')
+    # sss = StratifiedShuffleSplit(n_splits=2, test_size=0.2, random_state=0)
+    # scoresSSS = cross_val_score(clf, trainDf, testDf, cv=sss.split(trainDf, testDf))
 
-    print(str(scoresSSS))
+    # print(str(scoresSSS))
+
+    parameters = {'kernel': ('linear', 'rbf'), 'C': [1, 10, 100, 1000], 'gamma': [0.01, 0.001, 0.0001]}
+    svr = svm.SVC()
+    clf = GridSearchCV(svr, parameters, n_jobs=4)
+    clf.fit(trainDf, testDf)
+    print(clf.best_params_)
+
+    print(clf.grid_scores_)
+    print(clf.n_splits_)
+    print(clf.n_jobs)
 
 if __name__ == "__main__":
     main()

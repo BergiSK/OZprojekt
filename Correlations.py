@@ -54,14 +54,10 @@ def calculateAndPrintCorrelations(df, attributesSet):
 
     correlations = tmp.drop(predictedVariableIndex).sort_values(ascending=False)
     # print(correlations)
-    for item in correlations.index.values:
-        print(str(item))
-    print ("-----------")
-    for item in correlations.values:
-        print(str(item))
-    print("-----------")
-    for item in correlations.index:
-        print(list(attributesSet.keys())[list(attributesSet.values()).index(item)])
+    i = 0
+    for i in range(correlations.size):
+        name = list(attributesSet.keys())[list(attributesSet.values()).index(correlations.index[i])].strip()
+        print("[",str(correlations[correlations.index[i]]).strip(),", ", str(correlations.index[i]).strip(),", \"", name,"\"],")
 
 def plotPairs(df, columnNames):
     # plt.figure(figsize=(8, 6), dpi=80)
