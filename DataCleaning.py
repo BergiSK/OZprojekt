@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from datetime import time
+
 
 attributeStartingLine = 8
 
@@ -30,12 +32,48 @@ def createAttributeSet():
 
     return attributesSet
 
-def preprocessData(df):
+def mapToPeriods(dfColumn):
+    if dfColumn.hour >= 18 and dfColumn.hour < 24:
+        return 'evening'
+    elif dfColumn.hour >= 12 and dfColumn.hour < 18:
+        return 'afternoon'
+    if dfColumn.hour >= 6 and dfColumn.hour < 12:
+        return 'morning'
+    else:
+        return 'night'
+
+
+
+def createColumns(df, attributesSet):
     # create custom column SessionRegistered
     df[95].values[df[95].values == "?"] = False
     df[95].values[df[95].values != False] = True
     df[95] = df[95].astype('bool')
 
+    # create index in attributesSet
+    attributesSet["Session First Request Weekend"] = len(attributesSet) + 100
+    attributesSet["Session Last Request Weekend"] = len(attributesSet) + 100
+
+    equivWeek = {"Monday": False, "Tuesday": False, "Wednesday": False, "Thursday": False, "Friday": False, "Saturday": True, "Sunday": True}
+    # create columns: day to weekend/work day
+    df[attributesSet["Session First Request Weekend"]] = df[attributesSet["Session First Request Day of Week"]].map(equivWeek)
+    df[attributesSet["Session Last Request Weekend"]] = df[attributesSet["Session Last Request Day Of Week"]].map(equivWeek)
+
+    # create index in attributesSet
+    attributesSet["Cookie First Visit Date time Period"] = len(attributesSet) + 100
+    attributesSet["Session First Request Date time Period"] = len(attributesSet) + 100
+    attributesSet["Session Last Request Date time Period"] = len(attributesSet) + 100
+    # create columns: time to morning/afternoon/evening/night
+    df[attributesSet["Cookie First Visit Date time Period"]] = df[attributesSet["Cookie First Visit Date time"]].apply(
+        lambda row: mapToPeriods(row)).astype('category')
+    df[attributesSet["Session First Request Date time Period"]] = df[attributesSet["Session First Request Date time"]].apply(
+        lambda row: mapToPeriods(row)).astype('category')
+    df[attributesSet["Session Last Request Date time Period"]] = df[attributesSet["Session Last Request Date time"]].apply(
+        lambda row: mapToPeriods(row)).astype('category')
+    return df
+
+
+def preprocessData(df):
     # replaces '?' with nans for numarical columns, nans with 'not_defined' for categorical columns,
     # nans with previous valid bool value for boolean columns
     df.replace('?', np.nan, inplace=True)
@@ -87,6 +125,7 @@ def main():
     filename = "dataset/question1aggTimeStampParsed.csv"
     df = pd.read_csv(filename, sep=',',header=None, encoding = "ISO-8859-1", parse_dates=dateTimeColumns)
 
+    df = createColumns(df, attributesSet)
     df = preprocessData(df)
 
     preprocessedColumnNames = []

@@ -39,7 +39,10 @@ def readDataFrame():
                             221: 'category',
                             222: 'category',
                             223: 'category',
-                            224: 'category'
+                            224: 'category',
+                            227: 'category',
+                            228: 'category',
+                            229: 'category',
                             })
     return df
 
