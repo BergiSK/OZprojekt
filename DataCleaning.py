@@ -94,6 +94,12 @@ def preprocessData(df):
     for i in categoryNotNanColumns:
         df[i] = df[i].astype('category')
 
+    # transform categoric data to numbers
+    char_cols = df.dtypes.pipe(lambda x: x[x == 'category']).index
+
+    for c in char_cols:
+        df[c] = pd.factorize(df[c])[0]
+
     # Remove useless data (continuous strings / ID variables)
     df.drop(idColumns, axis=1, inplace=True)
     categoricVariableColumns = df.select_dtypes(['object']).columns

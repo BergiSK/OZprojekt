@@ -28,20 +28,7 @@ def createAttributeSet():
 def readDataFrame():
     # Loads the data
     filename = "dataset/PreprocessedData.csv"
-    df = pd.read_csv(filename, sep=',', header=None, encoding="ISO-8859-1", parse_dates=dateTimeColumns,
-                     dtype={54: 'category',
-                            210: 'category',
-                            212: 'category',
-                            213: 'category',
-                            214: 'category',
-                            218: 'category',
-                            219: 'category',
-                            220: 'category',
-                            221: 'category',
-                            222: 'category',
-                            223: 'category',
-                            224: 'category'
-                            })
+    df = pd.read_csv(filename, sep=',', header=None, encoding="ISO-8859-1", parse_dates=dateTimeColumns)
     return df
 
 def loadImportantColumns(df):
@@ -63,21 +50,24 @@ def main():
     trainDf = loadImportantColumns(df)
     testDf = df[78]
 
-    # clf = svm.SVC(kernel='rbf')
-    # sss = StratifiedShuffleSplit(n_splits=2, test_size=0.2, random_state=0)
-    # scoresSSS = cross_val_score(clf, trainDf, testDf, cv=sss.split(trainDf, testDf))
+    clf = svm.SVC(kernel='rbf')
+    sss = StratifiedShuffleSplit(n_splits=2, test_size=0.2, random_state=0)
+    scoresSSS = cross_val_score(clf, trainDf, testDf, cv=sss.split(trainDf, testDf))
 
-    # print(str(scoresSSS))
+    print(str(scoresSSS))
 
-    parameters = {'kernel': ('linear', 'rbf'), 'C': [1, 10, 100, 1000], 'gamma': [0.01, 0.001, 0.0001]}
-    svr = svm.SVC()
-    clf = GridSearchCV(svr, parameters, n_jobs=4)
-    clf.fit(trainDf, testDf)
-    print(clf.best_params_)
 
-    print(clf.grid_scores_)
-    print(clf.n_splits_)
-    print(clf.n_jobs)
+    # parameters = {'kernel': ('linear', 'rbf')}
+    # svr = svm.SVC()
+    # clf = GridSearchCV(svr, parameters, n_jobs=1, cv=2)
+
+    # clf = svm.SVC(kernel="rbf")
+    # clf.fit(trainDf, testDf)
+    # print(clf.best_params_)
+    #
+    # print(clf.grid_scores_)
+    # print(clf.n_splits_)
+    # print(clf.n_jobs)
 
 if __name__ == "__main__":
     main()

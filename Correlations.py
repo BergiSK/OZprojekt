@@ -27,23 +27,7 @@ def createAttributeSet():
 def readDataFrame():
     # Loads the data
     filename = "dataset/PreprocessedData.csv"
-    df = pd.read_csv(filename, sep=',', header=None, encoding="ISO-8859-1", parse_dates=dateTimeColumns,
-                     dtype={54: 'category',
-                            210: 'category',
-                            212: 'category',
-                            213: 'category',
-                            214: 'category',
-                            218: 'category',
-                            219: 'category',
-                            220: 'category',
-                            221: 'category',
-                            222: 'category',
-                            223: 'category',
-                            224: 'category',
-                            227: 'category',
-                            228: 'category',
-                            229: 'category',
-                            })
+    df = pd.read_csv(filename, sep=',', header=None, encoding="ISO-8859-1", parse_dates=dateTimeColumns)
     return df
 
 def calculateAndPrintCorrelations(df, attributesSet):
