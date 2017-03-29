@@ -6,7 +6,10 @@ from sklearn import svm
 from sklearn.model_selection import StratifiedShuffleSplit
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import GridSearchCV
+from scipy.stats import zscore
+from scipy.stats import boxcox
 from sklearn import preprocessing as pp
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
 
 from configparser import ConfigParser
 import codecs
@@ -17,7 +20,7 @@ with codecs.open('config.ini', 'r', encoding='utf-8') as f:
     parser.readfp(f)
 
 dateTimeColumns = [0, 1, 2]
-correlationThreshold = 0.1
+correlationThreshold = 0.15
 pairwiseCorrelationThreshold = 0.5
 
 def createAttributeSet():
@@ -56,7 +59,6 @@ def loadImportantColumnsForGeneration(df):
     return df[used_columns]
 
 def generateteFeatures(matrix):
-
     poly = pp.PolynomialFeatures(2)
     res = poly.fit_transform(matrix)
     # df = pd.DataFrame(res)
@@ -126,7 +128,7 @@ def generateColumnsSelectBest(attributesSet, df):
     bestCorrelationsGenerated = selectCorelationOnGeneratedFeatures(test_df, test_df.shape[1] - 1)
 
     important_generated_columns_df = test_df[bestCorrelationsGenerated[:, 1]]
-    print("Number of generated after correlation with targer variable: " + str(important_generated_columns_df.shape[1]))
+    print("Number of generated after correlation with target variable: " + str(important_generated_columns_df.shape[1]))
     # original and generated values together
     originalGeneratedDf = pd.concat([original_columns_df, important_generated_columns_df], axis=1)
     # rename column names to sequence of numbers
@@ -141,6 +143,20 @@ def generateColumnsSelectBest(attributesSet, df):
     print("Number of all: " + str(originalGeneratedDf.shape[1]))
     return deleteCorrelatedColumns(originalGeneratedDf, pairwiseCorrelation, correlationsToPredicted)
 
+# function responsible for returning accuracy, precision, recall and roc-auc score
+def getScores(estimator, x, y):
+    yPred = estimator.predict(x)
+    return (accuracy_score(y, yPred),
+            precision_score(y, yPred, pos_label=0),
+            recall_score(y, yPred, pos_label=0), roc_auc_score(y, yPred))
+
+# scorer implementation for cross-validation, multiple scoring results
+# need to be printed, since sklearn supports only one return value
+def my_scorer(estimator, x, y):
+    a, p, r, ra  = getScores(estimator, x, y)
+    print (a, p, r, ra)
+    return a+p+r+ra
+
 def main():
     attributesSet = createAttributeSet()
     df = readDataFrame()[:40000]
@@ -148,26 +164,41 @@ def main():
     trainDf = generateColumnsSelectBest(attributesSet, df)
     print("Number of generated after pairwise correlation: " + str(trainDf.shape[1]))
 
+    # normalize
+    # numericColumns = trainDf.select_dtypes(['float64', 'int64'])
+    # trainDf[trainDf.select_dtypes(['float64', 'int64']).columns] = (numericColumns - numericColumns.mean()) \
+    #           / (numericColumns.max() - numericColumns.min())
+    numeric_cols = trainDf.select_dtypes(['float64', 'int64']).columns
+    trainDf[numeric_cols].apply(zscore)
+
+    # shift data to positive for boxcox
+    trainDf[numeric_cols] = trainDf[numeric_cols].add(2)
+
+    # boxcox try
+    for index in numeric_cols:
+        if index != 185:
+            trainDf[index] = boxcox(trainDf[index])[0]
+
     testDf = df['predicted']
 
-    clf = svm.SVC(kernel='rbf')
-    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=0)
-    scoresSSS = cross_val_score(clf, trainDf, testDf, cv=sss.split(trainDf, testDf))
+    # clf = svm.SVC(kernel='rbf', class_weight='balanced')
+    # sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=0)
+    # scoresSSS = cross_val_score(clf, trainDf, testDf, cv=sss.split(trainDf, testDf))
+    # scoresSSS = cross_val_score(clf, trainDf, testDf, cv=sss.split(trainDf, testDf), scoring=my_scorer)
 
-    print(str(scoresSSS))
+    # print(str(scoresSSS))
 
+    parameters = {'kernel': ('rbf', 'poly'), 'C': [1, 10],
+                  'gamma': [0.01, 0.001, 0.0001], 'class_weight':['balanced']}
+    svr = svm.SVC()
+    clf = GridSearchCV(svr, parameters, n_jobs=6, cv=2)
 
-    # parameters = {'kernel': ('linear', 'rbf')}
-    # svr = svm.SVC()
-    # clf = GridSearchCV(svr, parameters, n_jobs=1, cv=2)
+    clf.fit(trainDf, testDf)
+    print(clf.best_params_)
 
-    # clf = svm.SVC(kernel="rbf")
-    # clf.fit(trainDf, testDf)
-    # print(clf.best_params_)
-    #
-    # print(clf.grid_scores_)
-    # print(clf.n_splits_)
-    # print(clf.n_jobs)
+    print(clf.grid_scores_)
+    print(clf.n_splits_)
+    print(clf.n_jobs)
 
 if __name__ == "__main__":
     main()
